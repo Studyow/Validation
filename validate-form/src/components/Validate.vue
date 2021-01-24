@@ -3,7 +3,7 @@
     <h2>Validation Requirements</h2>
     <div class="row">
         <form class="col s12" @submit.prevent="handleSubmit">
-            <div class="row">
+            <div class="card">
 
                 <!-- Name -->
                 <div class="input-field col m8 s12">
@@ -148,10 +148,10 @@
                     </div>
                 </div>
 
-                <div class="col s12"><button class="center-align btn-large teal">Submit</button></div>
-                <hr>
+                <div style="padding: 40px 0 40px 0" class="col m4 s12"><button class="center-align btn-large teal">Submit</button></div>
+                
 
-                <table>
+                <table class="col m6 s12">
                     <thead>
                     <tr>
                         <th>CurrencyCode</th>
