@@ -38,7 +38,7 @@
                         </span>
                         <span class="helper-text red-text" data-error="wrong" data-success="right"
                             v-if="isSubmitted && !$v.userForm.uname.alphaNum">
-                            Requered alphanumeric 
+                            required alphanumeric 
                         </span>
                     </div>
                 </div>
@@ -78,6 +78,20 @@
                     </div>
                 </div>
 
+                <!-- Date of Birth -->
+                <div class="input-field col s12">
+                    <input class="datepicker" id="birthDate" name="birthDate" type="date" 
+                        v-model="userForm.birthDate"
+                        :class="{ 'is-invalid': isSubmitted && $v.userForm.birthDate.$error }">
+                    <label for="birthDate">Date of Birth</label>
+                    <div v-if="isSubmitted && $v.userForm.birthDate.$error">
+                        <span v-if="!$v.userForm.birthDate.required" class="helper-text red-text" data-error="wrong" data-success="right">
+                            Date of birth is required
+                        </span>
+                    </div>
+                </div>
+                
+
                 <!-- Password -->
                 <div class="input-field col m6 s12">
                     <i class="material-icons prefix">lock</i>
@@ -112,8 +126,48 @@
                     </div>
                 </div>
 
-                <div class="col s12"><button class="center-align btn-large teal">Submit</button></div>
+                <!-- Captcha -->
+                <div class="input-field col m8 s12">
+                    <!-- <script 
+                        src="https://www.google.com/recaptcha/api.js?onload=vueRecaptchaApiLoaded&render=6Ley3DkaAAAAABQjtu08SNmHyBqBrFQ71ufHsOlT" async defer>
+                    </script> -->
+                    <vue-recaptcha
+                        class="validate" 
+                        @verify="markVerified"
+                        id="robotVerified" 
+                        sitekey="6LcZ5TkaAAAAAMnmlqDmW_9oI9nijgp2LKn6R6yB"
+                        v-model="userForm.robotVerified"
+                        :class="{ 'is-invalid': isSubmitted && $v.userForm.robotVerified.$error }"
+                        :loadRecaptchaScript="true">
+                    </vue-recaptcha>
+                    <div v-if="isSubmitted && $v.userForm.robotVerified.$error">
+                        <span class="helper-text red-text" data-error="wrong" data-success="right"
+                            v-if="isSubmitted && !$v.userForm.robotVerified.required">
+                            Please tick reCAPTCHA
+                        </span>
+                    </div>
+                </div>
 
+                <div class="col s12"><button class="center-align btn-large teal">Submit</button></div>
+                <hr>
+
+                <table>
+                    <thead>
+                    <tr>
+                        <th>CurrencyCode</th>
+                        <th>AffiliateID</th>
+                        <th>IpAddress</th>
+                    </tr>
+                    </thead>
+
+                    <tbody>
+                    <tr>
+                        <td>{{userForm.currencyCode}}</td>
+                        <td>{{userForm.affilID}}</td>
+                        <td>{{userForm.IpAddress}}</td>
+                    </tr>
+                    </tbody>
+                </table>
             </div>
         </form>
    </div>
@@ -124,6 +178,9 @@
 
 
 <script>
+    import VueRecaptcha from 'vue-recaptcha'
+    import axios from 'axios'
+    import VueAxios from 'vue-axios'
     import {
         required,
         alpha,
@@ -137,58 +194,51 @@
     } from "vuelidate/lib/validators";
     
 export default {
+    name: 'validate',
+    components: { VueRecaptcha },
     data() {
         return {
-            userForm: {
-                name: "",
-                uname: "",
-                email: "",
-                mobile: "",
-                password: "",
-                confirmPassword: "",
-            },
+            userForm: { name: "", uname: "", email: "",
+                mobile: "", password: "", confirmPassword: "",
+                birthDate: "", robotVerified: false,
+                currencyCode: 'VND', affilID: '01', IpAddress: '1.1.1.1' },
             isSubmitted: false
         }
     },
     validations: {
         userForm: {
-            name: {
-                required,
-                alpha
-            },
-            uname: {
-                required,
-                alphaNum
-            },
-            email: {
-                required,
-                email
-            },
-            mobile: {
-                required,
-                numeric
-            },
-            password: {
-                required,
-                minLength: minLength(8),
-                maxLength: maxLength(12)
-            },
-            confirmPassword: {
-                required,
-                sameAsPassword: sameAs('password')
-            }
+            name: { required, alpha },
+            uname: { required, alphaNum },
+            email: { required, email },
+            mobile: { required, numeric },
+            password: { required, minLength: minLength(8),
+                        maxLength: maxLength(12) },
+            confirmPassword: { required,
+                        sameAsPassword: sameAs('password') },
+            birthDate: { required },
+            robotVerified: { required }
         }
     },
     methods: {
-            handleSubmit() {
-                this.isSubmitted = true;
-                this.$v.$touch();
-                if (this.$v.$invalid) {
-                    return;
-                }
-                alert("SUCCESS!" + JSON.stringify(this.userForm));
+        markVerified(response) {
+            this.userForm.robotVerified = true;
+        },
+        handleSubmit() {
+            this.isSubmitted = true;
+            this.$v.$touch();
+            if (!this.userForm.robotVerified){
+                return true;
             }
+            if (this.$v.$invalid) {
+                return;
+            }
+            axios.post('https://fb88gateway.com/api/FastRegister/Register', 
+                this.userForm).then(response => {
+                    console.log(response);
+                });
+            alert("SUCCESS!" + JSON.stringify(this.userForm));
         }
+    }
 }
     
 
